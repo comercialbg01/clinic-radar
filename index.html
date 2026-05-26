@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clinic Radar · Acompanhamento de Equipe</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #F5F5F4;
+    color: #111827;
+    min-height: 100vh;
+    padding: 20px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  .switcher { background: #FFF; padding: 12px 16px; border: 1px solid #E5E7EB; border-radius: 12px; margin-bottom: 16px; font-size: 12px; }
+  .switcher-label { color: #6B7280; margin-bottom: 8px; display: block; font-weight: 500; }
+  .switcher-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sw-btn { background: #FFF; border: 1px solid #E5E7EB; padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; color: #6B7280; transition: all 0.15s; }
+  .sw-btn.active { background: #111827; color: #FFF; border-color: #111827; }
+  .sw-btn:hover:not(.active) { background: #F3F4F6; }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #FFF; border: 1px solid #E5E7EB; border-radius: 12px; margin-bottom: 16px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark { width: 32px; height: 32px; border-radius: 8px; background: #111827; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
+  .brand-name { font-weight: 600; font-size: 15px; }
+  .brand-sub { font-size: 11px; color: #9CA3AF; margin-top: -2px; }
+  .user-chip { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 12px; background: #F3F4F6; border-radius: 999px; }
+  .user-avatar { width: 24px; height: 24px; border-radius: 50%; background: #111827; color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+  .role-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #DBEAFE; color: #1E40AF; margin-left: 4px; font-weight: 500; }
+
+  .date-strip { display: flex; align-items: center; gap: 12px; font-size: 12px; color: #6B7280; margin-bottom: 16px; padding: 10px 14px; background: #FFF; border: 1px solid #E5E7EB; border-radius: 10px; }
+  .date-strip input { height: 30px; font-size: 12px; padding: 0 8px; border: 1px solid #E5E7EB; border-radius: 6px; }
+  .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981; margin-right: 6px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .page-title { font-size: 22px; font-weight: 600; margin: 0 0 4px; }
+  .page-sub { font-size: 14px; color: #6B7280; margin: 0 0 20px; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat { background: #FFF; border: 1px solid #E5E7EB; border-radius: 10px; padding: 16px; }
+  .stat-label { font-size: 12px; color: #6B7280; margin-bottom: 6px; }
+  .stat-value { font-size: 28px; font-weight: 600; line-height: 1; color: #111827; }
+  .stat-delta { font-size: 11px; color: #9CA3AF; margin-top: 8px; }
+
+  .form-card { background: #FFF; border: 1px solid #E5E7EB; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .form-title { font-size: 13px; font-weight: 600; margin: 0 0 12px; color: #6B7280; display: flex; align-items: center; gap: 6px; }
+  .form-grid { display: grid; gap: 8px; }
+  .form-grid.yas { grid-template-columns: 1fr 160px 120px; }
+  .form-grid.kaw { grid-template-columns: 1fr 140px 160px 120px; }
+  .form-grid.sam { grid-template-columns: 1fr 1.4fr 120px; }
+  .form-grid input, .form-grid select { font-size: 13px; padding: 0 10px; height: 38px; border: 1px solid #E5E7EB; border-radius: 8px; background: #FFF; color: #111827; }
+  .form-grid input:focus, .form-grid select:focus { outline: none; border-color: #111827; box-shadow: 0 0 0 3px rgba(17,24,39,0.08); }
+  .btn-primary { background: #111827; color: #FFF; border: 0; padding: 0 16px; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 600; height: 38px; transition: opacity 0.15s; }
+  .btn-primary:hover { opacity: 0.88; }
+
+  .list { background: #FFF; border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden; }
+  .list-head { display: grid; gap: 8px; padding: 12px 16px; background: #F9FAFB; font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #E5E7EB; }
+  .list-head.yas { grid-template-columns: 70px 1fr 150px 40px; }
+  .list-head.kaw { grid-template-columns: 70px 1fr 130px 150px 40px; }
+  .list-head.sam { grid-template-columns: 70px 1fr 1.4fr 130px 40px; }
+  .row { display: grid; gap: 8px; padding: 12px 16px; border-top: 1px solid #F3F4F6; font-size: 13px; align-items: center; }
+  .row:first-child { border-top: 0; }
+  .row.yas { grid-template-columns: 70px 1fr 150px 40px; }
+  .row.kaw { grid-template-columns: 70px 1fr 130px 150px 40px; }
+  .row.sam { grid-template-columns: 70px 1fr 1.4fr 130px 40px; }
+  .row .name { font-weight: 500; }
+  .row .time { font-size: 11px; color: #9CA3AF; font-variant-numeric: tabular-nums; }
+  .pill { font-size: 11px; padding: 4px 10px; border-radius: 999px; display: inline-block; font-weight: 600; }
+  .pill-resp { background: #D1FAE5; color: #065F46; }
+  .pill-noresp { background: #FEE2E2; color: #991B1B; }
+  .pill-fup { background: #DBEAFE; color: #1E40AF; }
+  .pill-new { background: #FEF3C7; color: #92400E; }
+  .del { background: transparent; border: 0; color: #9CA3AF; cursor: pointer; font-size: 16px; padding: 4px; }
+  .del:hover { color: #DC2626; }
+  .empty { padding: 32px; text-align: center; color: #9CA3AF; font-size: 13px; }
+
+  .gestor-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  @media (max-width: 800px) { .gestor-grid { grid-template-columns: 1fr; } }
+  .person-card { background: #FFF; border: 1px solid #E5E7EB; border-radius: 10px; padding: 16px; }
+  .person-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .person-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; }
+  .pa-y { background: #EEEDFE; color: #3C3489; }
+  .pa-k { background: #E1F5EE; color: #085041; }
+  .pa-s { background: #FAECE7; color: #712B13; }
+  .person-name { font-size: 15px; font-weight: 600; }
+  .person-role { font-size: 11px; color: #9CA3AF; }
+  .mini-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .mini-stat { background: #F9FAFB; padding: 10px 12px; border-radius: 8px; }
+  .mini-stat .l { font-size: 10px; color: #6B7280; font-weight: 500; }
+  .mini-stat .v { font-size: 20px; font-weight: 600; line-height: 1.3; }
+  .mini-rate { font-size: 12px; color: #6B7280; display: flex; align-items: center; justify-content: space-between; padding: 10px 0 0; border-top: 1px solid #F3F4F6; font-weight: 500; }
+  .mini-rate span:last-child { color: #111827; font-weight: 600; }
+
+  .activity { background: #FFF; border: 1px solid #E5E7EB; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .activity-title { font-size: 13px; font-weight: 600; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; color: #6B7280; }
+  .activity-item { display: grid; grid-template-columns: 90px 1fr auto; gap: 12px; padding: 10px 0; font-size: 13px; border-top: 1px solid #F3F4F6; align-items: center; }
+  .activity-item:first-of-type { border-top: 0; }
+  .ai-who { font-weight: 600; color: #111827; }
+  .ai-time { color: #9CA3AF; font-size: 11px; font-variant-numeric: tabular-nums; }
+
+  .footer-note { font-size: 11px; color: #9CA3AF; text-align: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid #E5E7EB; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="switcher">
+    <span class="switcher-label">Protótipo · selecione um perfil para simular o login:</span>
+    <div class="switcher-btns" id="role-switcher">
+      <button class="sw-btn active" data-role="gestor">Gestor (você)</button>
+      <button class="sw-btn" data-role="yas">Yasmin</button>
+      <button class="sw-btn" data-role="kaw">Kawane</button>
+      <button class="sw-btn" data-role="sam">Samara</button>
+    </div>
+  </div>
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">CR</div>
+      <div>
+        <div class="brand-name">Clinic Radar</div>
+        <div class="brand-sub">Acompanhamento de equipe</div>
+      </div>
+    </div>
+    <div class="user-chip">
+      <div class="user-avatar" id="ub-avatar">G</div>
+      <span id="ub-name">Gestor</span>
+      <span class="role-tag" id="ub-role">admin</span>
+    </div>
+  </div>
+
+  <div class="date-strip">
+    <span><span class="live-dot"></span>Ao vivo</span>
+    <span>·</span>
+    <span>Data:</span>
+    <input type="date" id="date-picker">
+    <button class="sw-btn" id="today-btn" style="margin-left:auto">Hoje</button>
+  </div>
+
+  <div class="view" id="view-gestor">
+    <h2 class="page-title">Painel do gestor</h2>
+    <p class="page-sub">Visão consolidada da equipe — atualiza em tempo real conforme cada colaboradora registra.</p>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-label">Total de contatos hoje</div><div class="stat-value" id="g-total">0</div><div class="stat-delta">Soma das 3 colaboradoras</div></div>
+      <div class="stat"><div class="stat-label">Taxa de resposta</div><div class="stat-value" id="g-rate">0%</div><div class="stat-delta">Quem respondeu / total</div></div>
+      <div class="stat"><div class="stat-label">Sem resposta</div><div class="stat-value" id="g-no">0</div><div class="stat-delta">A retomar amanhã</div></div>
+      <div class="stat"><div class="stat-label">Mais ativa hoje</div><div class="stat-value" id="g-top" style="font-size:18px">—</div><div class="stat-delta">Colaboradora com mais registros</div></div>
+    </div>
+
+    <div class="gestor-grid">
+      <div class="person-card">
+        <div class="person-head"><div class="person-avatar pa-y">Y</div><div><div class="person-name">Yasmin</div><div class="person-role">Busca ativa</div></div></div>
+        <div class="mini-stats">
+          <div class="mini-stat"><div class="l">Buscas feitas</div><div class="v" id="my-total">0</div></div>
+          <div class="mini-stat"><div class="l">Responderam</div><div class="v" id="my-resp">0</div></div>
+        </div>
+        <div class="mini-rate"><span>Taxa de resposta</span><span id="my-rate">—</span></div>
+      </div>
+      <div class="person-card">
+        <div class="person-head"><div class="person-avatar pa-k">K</div><div><div class="person-name">Kawane</div><div class="person-role">Leads</div></div></div>
+        <div class="mini-stats">
+          <div class="mini-stat"><div class="l">Leads novos</div><div class="v" id="mk-new">0</div></div>
+          <div class="mini-stat"><div class="l">Follow up</div><div class="v" id="mk-fup">0</div></div>
+        </div>
+        <div class="mini-rate"><span>Taxa de resposta</span><span id="mk-rate">—</span></div>
+      </div>
+      <div class="person-card">
+        <div class="person-head"><div class="person-avatar pa-s">S</div><div><div class="person-name">Samara</div><div class="person-role">Sucesso do cliente</div></div></div>
+        <div class="mini-stats">
+          <div class="mini-stat"><div class="l">Atendidos</div><div class="v" id="ms-total">0</div></div>
+          <div class="mini-stat"><div class="l">Responderam</div><div class="v" id="ms-resp">0</div></div>
+        </div>
+        <div class="mini-rate"><span>Taxa de resposta</span><span id="ms-rate">—</span></div>
+      </div>
+    </div>
+
+    <div class="activity">
+      <h4 class="activity-title"><i class="ti ti-activity"></i>Atividade ao vivo</h4>
+      <div id="activity-list">
+        <div class="empty">Nenhuma atividade ainda hoje.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="view-yas">
+    <h2 class="page-title">Olá, Yasmin</h2>
+    <p class="page-sub">Registre cada contato da busca ativa de hoje. O gestor vê em tempo real.</p>
+    <div class="stats">
+      <div class="stat"><div class="stat-label">Buscas hoje</div><div class="stat-value" id="y-total">0</div></div>
+      <div class="stat"><div class="stat-label">Responderam</div><div class="stat-value" id="y-resp">0</div></div>
+      <div class="stat"><div class="stat-label">Não responderam</div><div class="stat-value" id="y-no">0</div></div>
+    </div>
+    <div class="form-card">
+      <div class="form-title"><i class="ti ti-plus"></i>Novo registro</div>
+      <div class="form-grid yas">
+        <input type="text" id="yas-name" placeholder="Nome do contato">
+        <select id="yas-resp"><option value="nao">Não respondeu</option><option value="sim">Respondeu</option></select>
+        <button class="btn-primary" id="yas-add">Adicionar</button>
+      </div>
+    </div>
+    <div class="list">
+      <div class="list-head yas"><span>Hora</span><span>Contato</span><span>Status</span><span></span></div>
+      <div id="list-yas"></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-kaw">
+    <h2 class="page-title">Olá, Kawane</h2>
+    <p class="page-sub">Registre cada lead chamado hoje — informe se é lead novo ou follow up.</p>
+    <div class="stats">
+      <div class="stat"><div class="stat-label">Leads chamados</div><div class="stat-value" id="k-total">0</div></div>
+      <div class="stat"><div class="stat-label">Novos</div><div class="stat-value" id="k-new">0</div></div>
+      <div class="stat"><div class="stat-label">Follow up</div><div class="stat-value" id="k-fup">0</div></div>
+      <div class="stat"><div class="stat-label">Responderam</div><div class="stat-value" id="k-resp">0</div></div>
+    </div>
+    <div class="form-card">
+      <div class="form-title"><i class="ti ti-plus"></i>Novo registro</div>
+      <div class="form-grid kaw">
+        <input type="text" id="kaw-name" placeholder="Nome do lead">
+        <select id="kaw-type"><option value="novo">Lead novo</option><option value="fup">Follow up</option></select>
+        <select id="kaw-resp"><option value="nao">Não respondeu</option><option value="sim">Respondeu</option></select>
+        <button class="btn-primary" id="kaw-add">Adicionar</button>
+      </div>
+    </div>
+    <div class="list">
+      <div class="list-head kaw"><span>Hora</span><span>Lead</span><span>Tipo</span><span>Resposta</span><span></span></div>
+      <div id="list-kaw"></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-sam">
+    <h2 class="page-title">Olá, Samara</h2>
+    <p class="page-sub">Para cada cliente atendido, registre o que ele respondeu — texto completo.</p>
+    <div class="stats">
+      <div class="stat"><div class="stat-label">Clientes atendidos</div><div class="stat-value" id="s-total">0</div></div>
+      <div class="stat"><div class="stat-label">Responderam</div><div class="stat-value" id="s-resp">0</div></div>
+      <div class="stat"><div class="stat-label">Sem resposta</div><div class="stat-value" id="s-no">0</div></div>
+    </div>
+    <div class="form-card">
+      <div class="form-title"><i class="ti ti-plus"></i>Novo registro</div>
+      <div class="form-grid sam">
+        <input type="text" id="sam-name" placeholder="Nome do cliente">
+        <input type="text" id="sam-reply" placeholder="O que respondeu (deixe vazio se não respondeu)">
+        <button class="btn-primary" id="sam-add">Adicionar</button>
+      </div>
+    </div>
+    <div class="list">
+      <div class="list-head sam"><span>Hora</span><span>Cliente</span><span>Resposta</span><span>Status</span><span></span></div>
+      <div id="list-sam"></div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    Protótipo navegável · os dados ficam salvos só neste navegador (localStorage). O sistema real terá banco compartilhado em nuvem.
+  </div>
+</div>
+
+<script>
+(function(){
+  const KEY = 'clinic-radar-prototipo-v1';
+  let data = {};
+  let currentDate = (function(){ const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })();
+  let currentRole = 'gestor';
+
+  const roles = {
+    gestor: { name: 'Gestor', tag: 'admin', avatar: 'G' },
+    yas:    { name: 'Yasmin', tag: 'colab', avatar: 'Y' },
+    kaw:    { name: 'Kawane', tag: 'colab', avatar: 'K' },
+    sam:    { name: 'Samara', tag: 'colab', avatar: 'S' }
+  };
+
+  try { const raw = localStorage.getItem(KEY); if (raw) data = JSON.parse(raw); } catch(e) {}
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e) {} }
+  function ensure(d){ if(!data[d]) data[d] = { yas:[], kaw:[], sam:[] }; return data[d]; }
+  function nowTime(){ const d = new Date(); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+  function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  document.getElementById('role-switcher').addEventListener('click', e => {
+    if(!e.target.matches('.sw-btn')) return;
+    currentRole = e.target.dataset.role;
+    document.querySelectorAll('#role-switcher .sw-btn').forEach(b => b.classList.toggle('active', b===e.target));
+    showView();
+  });
+
+  function showView(){
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-'+currentRole).classList.add('active');
+    const r = roles[currentRole];
+    document.getElementById('ub-name').textContent = r.name;
+    document.getElementById('ub-avatar').textContent = r.avatar;
+    document.getElementById('ub-role').textContent = r.tag;
+    renderAll();
+  }
+
+  const dp = document.getElementById('date-picker');
+  dp.value = currentDate;
+  dp.addEventListener('change', () => { currentDate = dp.value; renderAll(); });
+  document.getElementById('today-btn').addEventListener('click', () => {
+    const d = new Date(); currentDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    dp.value = currentDate; renderAll();
+  });
+
+  document.getElementById('yas-add').addEventListener('click', () => {
+    const name = document.getElementById('yas-name').value.trim();
+    if (!name) return;
+    const resp = document.getElementById('yas-resp').value === 'sim';
+    const day = ensure(currentDate);
+    day.yas.push({ id: Date.now()+Math.random(), name, responded: resp, time: nowTime() });
+    document.getElementById('yas-name').value = '';
+    save(); renderAll();
+  });
+  document.getElementById('kaw-add').addEventListener('click', () => {
+    const name = document.getElementById('kaw-name').value.trim();
+    if (!name) return;
+    const type = document.getElementById('kaw-type').value;
+    const resp = document.getElementById('kaw-resp').value === 'sim';
+    const day = ensure(currentDate);
+    day.kaw.push({ id: Date.now()+Math.random(), name, type, responded: resp, time: nowTime() });
+    document.getElementById('kaw-name').value = '';
+    save(); renderAll();
+  });
+  document.getElementById('sam-add').addEventListener('click', () => {
+    const name = document.getElementById('sam-name').value.trim();
+    if (!name) return;
+    const reply = document.getElementById('sam-reply').value.trim();
+    const day = ensure(currentDate);
+    day.sam.push({ id: Date.now()+Math.random(), name, reply, responded: reply.length > 0, time: nowTime() });
+    document.getElementById('sam-name').value = '';
+    document.getElementById('sam-reply').value = '';
+    save(); renderAll();
+  });
+
+  function del(who, id){
+    const day = data[currentDate]; if (!day) return;
+    day[who] = day[who].filter(x => x.id !== id);
+    save(); renderAll();
+  }
+
+  function renderList(who){
+    const day = data[currentDate] || {yas:[],kaw:[],sam:[]};
+    const list = (day[who] || []).slice().reverse();
+    const el = document.getElementById('list-'+who);
+    if (list.length === 0){ el.innerHTML = '<div class="empty">Nenhum registro neste dia.</div>'; return; }
+    el.innerHTML = list.map(item => {
+      if (who === 'yas') return `<div class="row yas">
+        <span class="time">${item.time || '--:--'}</span>
+        <span class="name">${esc(item.name)}</span>
+        <span><span class="pill ${item.responded?'pill-resp':'pill-noresp'}">${item.responded?'Respondeu':'Não respondeu'}</span></span>
+        <button class="del" data-who="yas" data-id="${item.id}"><i class="ti ti-trash"></i></button>
+      </div>`;
+      if (who === 'kaw') return `<div class="row kaw">
+        <span class="time">${item.time || '--:--'}</span>
+        <span class="name">${esc(item.name)}</span>
+        <span><span class="pill ${item.type==='fup'?'pill-fup':'pill-new'}">${item.type==='fup'?'Follow up':'Lead novo'}</span></span>
+        <span><span class="pill ${item.responded?'pill-resp':'pill-noresp'}">${item.responded?'Respondeu':'Não respondeu'}</span></span>
+        <button class="del" data-who="kaw" data-id="${item.id}"><i class="ti ti-trash"></i></button>
+      </div>`;
+      if (who === 'sam') return `<div class="row sam">
+        <span class="time">${item.time || '--:--'}</span>
+        <span class="name">${esc(item.name)}</span>
+        <span style="color: #6B7280; font-size: 12px;">${item.reply ? esc(item.reply) : '<em style="color: #9CA3AF">sem resposta</em>'}</span>
+        <span><span class="pill ${item.responded?'pill-resp':'pill-noresp'}">${item.responded?'Respondeu':'Sem resposta'}</span></span>
+        <button class="del" data-who="sam" data-id="${item.id}"><i class="ti ti-trash"></i></button>
+      </div>`;
+    }).join('');
+    el.querySelectorAll('.del').forEach(b => b.addEventListener('click', () => del(b.dataset.who, parseFloat(b.dataset.id))));
+  }
+
+  function renderStats(){
+    const day = data[currentDate] || {yas:[],kaw:[],sam:[]};
+    const y = day.yas||[], k = day.kaw||[], s = day.sam||[];
+    const yR = y.filter(x=>x.responded).length, kR = k.filter(x=>x.responded).length, sR = s.filter(x=>x.responded).length;
+
+    document.getElementById('y-total').textContent = y.length;
+    document.getElementById('y-resp').textContent = yR;
+    document.getElementById('y-no').textContent = y.length - yR;
+
+    const kNew = k.filter(x=>x.type==='novo').length;
+    const kFup = k.filter(x=>x.type==='fup').length;
+    document.getElementById('k-total').textContent = k.length;
+    document.getElementById('k-new').textContent = kNew;
+    document.getElementById('k-fup').textContent = kFup;
+    document.getElementById('k-resp').textContent = kR;
+
+    document.getElementById('s-total').textContent = s.length;
+    document.getElementById('s-resp').textContent = sR;
+    document.getElementById('s-no').textContent = s.length - sR;
+
+    const total = y.length + k.length + s.length;
+    const totalResp = yR + kR + sR;
+    document.getElementById('g-total').textContent = total;
+    document.getElementById('g-rate').textContent = total > 0 ? Math.round(totalResp/total*100)+'%' : '0%';
+    document.getElementById('g-no').textContent = total - totalResp;
+    const counts = [['Yasmin', y.length],['Kawane', k.length],['Samara', s.length]].sort((a,b)=>b[1]-a[1]);
+    document.getElementById('g-top').textContent = counts[0][1] > 0 ? `${counts[0][0]} · ${counts[0][1]}` : '—';
+
+    document.getElementById('my-total').textContent = y.length;
+    document.getElementById('my-resp').textContent = yR;
+    document.getElementById('my-rate').textContent = y.length > 0 ? Math.round(yR/y.length*100)+'%' : '—';
+    document.getElementById('mk-new').textContent = kNew;
+    document.getElementById('mk-fup').textContent = kFup;
+    document.getElementById('mk-rate').textContent = k.length > 0 ? Math.round(kR/k.length*100)+'%' : '—';
+    document.getElementById('ms-total').textContent = s.length;
+    document.getElementById('ms-resp').textContent = sR;
+    document.getElementById('ms-rate').textContent = s.length > 0 ? Math.round(sR/s.length*100)+'%' : '—';
+
+    const all = [];
+    y.forEach(i => all.push({ who: 'Yasmin', name: i.name, type: 'busca', resp: i.responded, time: i.time }));
+    k.forEach(i => all.push({ who: 'Kawane', name: i.name, type: i.type === 'fup' ? 'follow up' : 'lead novo', resp: i.responded, time: i.time }));
+    s.forEach(i => all.push({ who: 'Samara', name: i.name, type: 'sucesso', resp: i.responded, time: i.time }));
+    all.sort((a,b) => (b.time||'').localeCompare(a.time||''));
+    const aEl = document.getElementById('activity-list');
+    if (all.length === 0) aEl.innerHTML = '<div class="empty">Nenhuma atividade ainda hoje.</div>';
+    else aEl.innerHTML = all.slice(0, 10).map(a => `<div class="activity-item">
+      <span class="ai-who">${a.who}</span>
+      <span style="color: #6B7280;">${esc(a.name)} · ${a.type} · ${a.resp ? 'respondeu' : 'sem resposta'}</span>
+      <span class="ai-time">${a.time || '--:--'}</span>
+    </div>`).join('');
+  }
+
+  function renderAll(){
+    renderStats();
+    renderList('yas'); renderList('kaw'); renderList('sam');
+  }
+
+  showView();
+})();
+</script>
+</body>
+</html>
